@@ -14,6 +14,7 @@ db = None  # type: Optional[LevelDB]
 @app.route('/conn.local')
 async def conn_local():
     # type: () -> Text
+    global db
     path = request.args.get("dir")
     path = path.replace("%2F", "/")
     db = LevelDB(path, create_if_missing=True)
@@ -44,9 +45,31 @@ async def conn_network():
     return json.dumps(ret)
 
 
+@app.route('/put')
+async def put_record():  # {{{1
+    # type: () -> Text
+    global db
+    if db is None:
+        abort(404)
+    k = request.args.get("key")
+    v = request.args.get("val")
+    try:
+        ___v = json.loads(v)
+        __v = json.dumps(___v)
+    except:
+        __v = v
+    _k = k.encode("utf-8")  # TODO: encoding by settings
+    _v = __v.encode("utf-8")  # TODO: encoding by settings
+    db.Put(_k, _v)
+
+    ret = dict(k=k, v=__v)
+    print("LevelDB put: {}".format(ret))
+    return json.dumps(ret)
+
+
 @app.route('/')
 async def root():
     return await render_template("index.html")
 
 app.run()
-
+# vi: ft=python:et:ts=4:nowrap:fdm=marker
