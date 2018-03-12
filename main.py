@@ -46,7 +46,7 @@ async def conn_network():
 
 
 @app.route('/put')
-async def put_record():  # {{{1
+async def put_record():  # route {{{1
     # type: () -> Text
     global db
     if db is None:
@@ -65,6 +65,49 @@ async def put_record():  # {{{1
     ret = dict(k=k, v=__v)
     print("LevelDB put: {}".format(ret))
     return json.dumps(ret)
+
+
+@app.route('/query_records')
+async def query_records():  # route {{{1
+    # type: () -> Iterator(Text)
+    global db
+    if db is None:
+        abort(404)
+    try:
+        u = request.args.get("u")
+        l = request.args.get("l")
+        n = request.args.get("n", "100")
+    except:
+        u = l = n = ""
+
+    if l == "":
+        l = chr(255)
+    try:
+        _n = int(n)
+    except ValueError:
+        _n = 100
+
+    ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) +
+           ', "records": [')
+    yield ret.encode("utf-8")
+
+    i = 0
+    for k, v in db.RangeIter(u.encode("utf-8"), l.encode("utf-8")):
+        i += 1
+        if i > _n:
+            continue
+        ret = '{"key": "' + k.decode("utf-8") + '", "val": '
+        try:
+            _v = json.loads(v.decode("utf-8"))  # TODO: encoding by settings
+            ret += _v.dumps().encode("utf-8")
+        except json.decoder.JSONDecodeError:
+            _v = v.decode("utf-8")
+            ret += '"{}"'.format(_v)
+        ret += "}"
+        if i > 1:
+            yield ",".encode("utf-8")
+        yield ret.encode("utf-8")
+    yield "]}".encode("utf-8")
 
 
 @app.route('/')

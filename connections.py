@@ -86,6 +86,33 @@ def put_save():  # {{{1
     return True
 
 
+def query_succeed(_dat):  # {{{1
+    # type: (Any) -> None
+    try:
+        dat = JSON.parse(_dat)
+    except:
+        return False
+    for i in dat.records:
+        cnt = "<li><textarea>{}</textarea></li>".format(i)
+        jq(".root").append(cnt)
+
+
+def query_failed():  # {{{1
+    # type: () -> None
+    pass  # TODO: error handling
+
+
+def query_sublevels():  # {{{1
+    # type: () -> bool
+    u = jq(".upperbound").val()
+    l = jq(".lowerbound").val()
+    n = jq(".limit").val()
+    n = "&n=" + n if n != "" else ""
+    jsutils.ajax("/query_records?u=" + u + "&l=" + l + n)  \
+        .then(query_succeed, query_failed)
+    return True
+
+
 def init():
     # type: () -> bool
 
@@ -94,6 +121,7 @@ def init():
     jq(".openConnection").on("click", conn_network)
     jq(".clear").on("click", put_clear)
     jq(".save").on("click", put_save)
+    jq(".sublevels").on("click", query_sublevels)
     return False
 
 # vi: ft=python:et:ts=4:nowrap:fdm=marker

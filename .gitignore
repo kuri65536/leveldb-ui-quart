@@ -4,4 +4,4 @@ __javascript__
 /static/jquery.min.js
 /static/ui.min.js
 __pycache__
-
+*.pyc
