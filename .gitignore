@@ -3,3 +3,5 @@ __javascript__
 !.gitignore
 /static/jquery.min.js
 /static/ui.min.js
+__pycache__
+

@@ -20,7 +20,7 @@ download: static/jquery.min.js
 static/jquery.min.js:
 	wget -O $@ https://code.jquery.com/jquery-3.3.1.min.js
 
-static/ui.min.js: ui.py
+static/ui.min.js: ui.py jsutils.py connections.py configs.py
 	./venv/bin/transcrypt $<
 	cp __javascript__/$(uipy) $@
 

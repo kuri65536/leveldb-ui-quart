@@ -4,6 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import connections
+
 __pragma__('skip')      # noqa
 if False:
     jq = None
@@ -35,9 +37,12 @@ def main():
 
     # hide sections
     jq("section").css("display", "none")
+    jq("section.connections").css("display", "block")
 
     # active sections
     jq(".horizontal a").on("click", section_activate)
+
+    connections.init()
 
 
 jq(main);
