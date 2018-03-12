@@ -93,8 +93,12 @@ def query_succeed(_dat):  # {{{1
     except:
         return False
     for i in dat.records:
-        cnt = "<li><textarea>{}</textarea></li>".format(i)
-        jq(".root").append(cnt)
+        cnt = '<option>{}</option>'.format(i.key)
+        jq(".keys select").append(cnt)
+    # for i in dat.records:
+    #     cnt = ('<li><input id="tree-{0}" type="checkbox" value="{0}" />' +
+    #            '<label for="tree-{0}">{0}</label></li>').format(i.key)
+    #     jq(".root").append(cnt)
 
 
 def query_failed():  # {{{1

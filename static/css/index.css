@@ -579,7 +579,7 @@ section.query .results {
 section.query .results.open {
   left: 300px;
 }
-section.query .results .splitx {
+section.query .results .split {
   position: absolute;
   top: 0px;
   bottom: 0px;
