@@ -8,6 +8,7 @@ url_host = "http://localhost:5000"
 
 
 def url(*text):
+    # type: (List[Text]) -> Text
     ret = url_host
     for i in text:
         i = i.replace("/", "%2F")

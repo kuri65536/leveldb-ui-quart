@@ -38,18 +38,18 @@ def conn_succeed(dat):
 
 def conn_local():
     global host_text
-    host_text = path = jq(".path").text()
+    host_text = path = jq(".path").val()
     port_text = ""
-    jsutils.ajax(cfg.url("conn.local", path)) \
+    jsutils.ajax(cfg.url("conn.local?dir=" + path)) \
         .then(conn_succeed, conn_failed)
 
 
 def conn_network():
     global host_text
     global port_text
-    host_text = url = jq(".host").text();
+    host_text = url = jq(".host").val();
     port_text = url.split(":")[-1]
-    jsutils.ajax(cfg.url("conn.network", url)) \
+    jsutils.ajax(cfg.url("conn.network?url=" + url)) \
         .then(conn_succeed, conn_failed)
 
 
