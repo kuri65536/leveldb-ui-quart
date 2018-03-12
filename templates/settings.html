@@ -1,0 +1,55 @@
+<!--
+ Copyright (c) 2018, Shimoda <kuri65536 at hotmail dot com>
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+<section class="settings">
+
+  <div class="controls top">
+    <h2> Settings </h2>
+  </div>
+
+  <h4> Database </h4>
+  <div class="controls">
+    <div class="control.half">
+      <label> Key Encoding  </label>
+      <input id="keyEncoding" type="text" placeholder="utf8" />
+    </div> <div class="control.half">
+      <label> Value Encoding </label>
+      <input id="valueEncoding" type="text" placeholder="json" />
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="control half">
+      <input class="custom" id="compression" type="checkbox" />
+      <label for="compression"> Use Compression </label>
+    </div> <div class="control half">
+      <label> Cache Size </label>
+      <input id="cacheSize" type="text" placeholder="8388608" />
+    </div>
+  </div>
+  <div class="controls">
+    <div class="control half">
+      <input class="custom" id="createIfMissing" type="checkbox" />
+      <label for="createIfMissing"> Create If Missing </label>
+    </div> <div class="control half">
+      <input class="custom" id="errorIfExists" type="checkbox" />
+      <label for="errorIfExists"> Error If Exists </label>
+    </div>
+  </div>
+
+  <h4> Connections </h4>
+  <div class="controls">
+    <div class="control half">
+      <label> Remote Host </label>
+      <input id="host" type="text" placeholder="localhost" />
+    </div> <div class="control half">
+      <label> Remote Port </label>
+      <input id="port" type="text" placeholder="3000" />
+    </div>
+  </div>
+
+</section>

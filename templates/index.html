@@ -1,0 +1,36 @@
+<html>
+  <!--
+ Copyright (c) 2018, Shimoda <kuri65536 at hotmail dot com>
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+  <head>
+    <link rel="stylesheet" href="/static/css/codemirror.css" />
+    <link rel="stylesheet" href="/static/css/lint.css" />
+    <link rel="stylesheet" href="/static/css/index.css" />
+    <script src="/static/jquery.min.js"> </script>
+    <script src="/static/ui.min.js"> </script>
+  </head>
+  <body>
+    <ul class="horizontal">
+      <li>
+        <a class="active ss-icon connections" href="#"> database </a>
+      </li> <li>
+        <a class="ss-icon query" href="#"> search </a>
+      </li> <li>
+        <a class="ss-icon put" href="#"> pencil </a>
+      </li> <li>
+        <a class="ss-icon settings" href="#"> cog </a>
+      </li>
+    </ul>
+
+    {% include "./query.html" %}
+    {% include "./put.html" %}
+    {% include "./connections.html" %}
+    {% include "./settings.html" %}
+
+  </body>
+</html>
+

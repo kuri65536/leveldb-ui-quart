@@ -1,0 +1,45 @@
+<!--
+ Copyright (c) 2018, Shimoda <kuri65536 at hotmail dot com>
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+<section class="query">
+
+  <div class="controls top">
+    <div class="control">
+      <input class="upperbound" type="text" placeholder="Upper Bound" />
+    </div> <div class="control">
+      <input class="lowerbound" type="text" placeholder="Lower Bound" />
+    </div> <div class="control">
+      <input class="limit" name="limit" type="text" />
+    </div> <div class="control">
+      <input class="ss-icon reverse" type="button" value="navigatedown" title="Reverse" />
+    </div> <div class="control">
+      <input class="ss-icon delete" type="button" value="trash"
+             disabled="disabled" title="Delete" />
+    </div> <div class="control">
+      <input class="ss-icon sublevels" type="button" value="folder" title="Sublevels" />
+    </div>
+  </div>
+
+  <div class="tree container">
+    <div class="tree">
+      <input id="root" type="checkbox" />
+      <label for="root"> Root </label>
+      <ul class="root">
+      </ul>
+    </div>
+  </div>
+
+  <div class=".results">
+    <div class="keys">
+      <select option="multiple"> </select>
+    </div> <div class="split">
+    </div> <div class="value">
+      <textarea class="codemirror"> </textarea>
+    </div>
+  </div>
+
+</section>
