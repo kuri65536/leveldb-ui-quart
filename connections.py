@@ -92,6 +92,7 @@ def query_succeed(_dat):  # {{{1
         dat = JSON.parse(_dat)
     except:
         return False
+    jq(".keys select").empty()
     for i in dat.records:
         cnt = '<option>{}</option>'.format(i.key)
         jq(".keys select").append(cnt)
@@ -117,7 +118,7 @@ def query_sublevels():  # {{{1
     return True
 
 
-def init():
+def init():  # {{{1
     # type: () -> bool
 
     # hide sections

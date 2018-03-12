@@ -28,6 +28,8 @@ def section_activate():
         break
     else:
         return False
+    jq(".horizontal a").removeClass("active")
+    jq(".horizontal a." + i).addClass("active")
     jq("section").css("display", "none")
     jq("section." + i).css("display", "block")
 
