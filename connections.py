@@ -4,17 +4,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+from typing import Any
 import configs as cfg
 import jsutils
 
 __pragma__('skip')      # noqa
 if False:
-    jq = None
+    jq = Any
     this = alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
     JSON = RegExp = None
     __pragma__ = None
-    jump_js     # use by html
 __pragma__('noskip')
 __pragma__('alias', 'jq', '$')
 
@@ -22,26 +22,28 @@ host_text = port_text = ""
 
 
 def conn_failed():
+    # type: () -> None
     pass
 
 
-def conn_succeed(dat):
+def conn_succeed(_dat):  # {{{1
     # type: (Any) -> None
-    jq("#keyEncoding").text(dat.key_encoding)
-    jq("#valueEncoding").text(dat.val_encoding)
+    dat = JSON.parse(_dat)
+    jq(".keyEncoding").val(dat.key_encoding)
+    jq(".valEncoding").val(dat.val_encoding)
     jq("#compression").prop("checked", dat.compression)
-    jq("#cacheSize").text(dat.cache_size)
+    jq("#cacheSize").val(dat.cache_size)
     jq("#createIfMissing").prop("checked", dat.create_if_missing)
     jq("#errorIfExists").prop("checked", dat.error_if_exists)
-    jq("#host").text(host_text)
-    jq("#port").text(port_text)
+    jq("#host").val(host_text)
+    jq("#port").val(port_text)
 
 
 def conn_local():
     # type: () -> bool
     global host_text
     host_text = path = jq(".path").val()
-    port_text = ""
+    # port_text = ""
     jsutils.ajax(cfg.url("conn.local?dir=" + path)) \
         .then(conn_succeed, conn_failed)
     return True
@@ -51,7 +53,7 @@ def conn_network():
     # type: () -> bool
     global host_text
     global port_text
-    host_text = url = jq(".host").val();
+    host_text = url = jq(".host").val()
     port_text = url.split(":")[-1]
     jsutils.ajax(cfg.url("conn.network?url=" + url)) \
         .then(conn_succeed, conn_failed)
@@ -91,7 +93,7 @@ def query_succeed(_dat):  # {{{1
     try:
         dat = JSON.parse(_dat)
     except:
-        return False
+        return
     jq(".keys select").empty()
     for i in dat.records:
         cnt = '<option>{}</option>'.format(i.key)

@@ -11,7 +11,6 @@ if False:
     Math = parseFloat = isFinite = isNaN = None
     JSON = RegExp = None
     __pragma__ = None
-    jump_js     # use by html
 __pragma__('noskip')
 __pragma__('alias', 'jq', '$')
 
@@ -20,4 +19,4 @@ def ajax(url):  # {{{1
     # type: (Text) -> Any
     dat = dict(url=url)
     return jq.ajax(dat)
-
+# vi: ft=python:et:ts=4:nowrap:fdm=marker
