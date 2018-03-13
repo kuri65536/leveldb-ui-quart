@@ -159,5 +159,23 @@ async def root():  # {{{1
     # type: () -> Text
     return await render_template("index.html")
 
+
+@app.route('/readme')
+async def readme():  # {{{1
+    # type: () -> Text
+    import markdown
+    ret = ""
+    with open("templates/index.html", "rt") as fp:
+        for line in fp:
+            ret += line
+            if "<body" in line:
+                break
+    with open("README.md", "rt") as fp:
+        src = fp.read()  # TODO: await?
+    ret += markdown.markdown(src)  # TODO: await?
+    ret += "</body> </html>"
+    return ret
+
+
 app.run()
 # vi: ft=python:et:ts=4:nowrap:fdm=marker
