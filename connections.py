@@ -115,7 +115,7 @@ def query_sublevels():  # {{{1
     l = jq(".lowerbound").val()
     n = jq(".limit").val()
     n = "&n=" + n if n != "" else ""
-    jsutils.ajax("/query_records?u=" + u + "&l=" + l + n)  \
+    jsutils.ajax("/query_part?u=" + u + "&l=" + l + n)  \
         .then(query_succeed, query_failed)
     return True
 

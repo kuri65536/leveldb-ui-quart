@@ -4,12 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+from typing import Dict, Iterable, Iterator, Optional, Text, Tuple
 import json
 from leveldb import LevelDB
 from quart import Quart, abort, render_template, request
 
+Dict, Iterable, Iterator, Optional, Text, Tuple
 app = Quart(__name__)
 db = None  # type: Optional[LevelDB]
+
 
 @app.route('/conn.local')
 async def conn_local():
@@ -51,8 +54,12 @@ async def put_record():  # route {{{1
     global db
     if db is None:
         abort(404)
-    k = request.args.get("key")
-    v = request.args.get("val")
+        return ""
+    k = request.args.get("key", "")
+    v = request.args.get("val", "")
+    if k == "" or v == "":
+        abort(404)
+        return ""
     try:
         ___v = json.loads(v)
         __v = json.dumps(___v)
@@ -67,18 +74,18 @@ async def put_record():  # route {{{1
     return json.dumps(ret)
 
 
-@app.route('/query_records')
-async def query_records():  # route {{{1
-    # type: () -> Iterator(Text)
+@app.route('/query_part')
+async def query_part():  # route {{{1
+    # type: () -> bytes
+    '''TODO: hold iterator, return the token, continue iterator with token.
+    '''
     global db
     if db is None:
         abort(404)
-    try:
-        u = request.args.get("u")
-        l = request.args.get("l")
-        n = request.args.get("n", "100")
-    except:
-        u = l = n = ""
+        return ""
+    u = request.args.get("u", "")
+    l = request.args.get("l", "")
+    n = request.args.get("n", "100")
 
     if l == "":
         l = chr(255)
@@ -89,29 +96,67 @@ async def query_records():  # route {{{1
 
     ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) +
            ', "records": [')
-    yield ret.encode("utf-8")
-
     i = 0
-    for k, v in db.RangeIter(u.encode("utf-8"), l.encode("utf-8")):
+    for k in db.RangeIter(u.encode("utf-8"), l.encode("utf-8"),
+                          include_value=False):
         i += 1
         if i > _n:
             continue
-        ret = '{"key": "' + k.decode("utf-8") + '", "val": '
-        try:
-            _v = json.loads(v.decode("utf-8"))  # TODO: encoding by settings
-            ret += _v.dumps().encode("utf-8")
-        except json.decoder.JSONDecodeError:
-            _v = v.decode("utf-8")
-            ret += '"{}"'.format(_v)
-        ret += "}"
         if i > 1:
-            yield ",".encode("utf-8")
+            ret += ", "
+        ret += '{"key": "' + k.decode("utf-8") + '"}'
+    ret += "]}"
+    print(ret)
+    return ret.encode("utf-8")
+
+
+@app.route('/query_stream')
+async def query_stream():  # route {{{1
+    # type: () -> Tuple[Iterable[bytes], int, Dict[Text, Text]]
+    global db
+    if db is None:
+        abort(404)
+        return ""
+    u = request.args.get("u", "")
+    l = request.args.get("l", "")
+    n = request.args.get("n", "100")
+
+    if l == "":
+        l = chr(255)
+    try:
+        _n = int(n)
+    except ValueError:
+        _n = 100
+
+    async def stream(u, l, n):
+        # type: (Text, Text, int) -> Iterable[byte]
+        ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(n) +
+               ', "records": [')
         yield ret.encode("utf-8")
-    yield "]}".encode("utf-8")
+
+        i = 0
+        for k, v in db.RangeIter(u.encode("utf-8"), l.encode("utf-8")):
+            i += 1
+            if i > n:
+                break
+            if i > 1:
+                yield ",".encode("utf-8")
+            ret = '{"key": "' + k.decode("utf-8") + '", "val": '
+            try:
+                _v = json.loads(v.decode("utf-8"))  # TODO: encode by settings
+                ret += _v.dumps()
+            except json.decoder.JSONDecodeError:
+                _v = v.decode("utf-8")
+                ret += '"{}"'.format(_v)
+            ret += "}"
+            yield ret.encode("utf-8")
+        yield "]}".encode("utf-8")
+    return stream(u, l, _n), 200, {'X-Something': 'value'}
 
 
 @app.route('/')
-async def root():
+async def root():  # {{{1
+    # type: () -> Text
     return await render_template("index.html")
 
 app.run()

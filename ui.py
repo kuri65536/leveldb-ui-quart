@@ -13,7 +13,6 @@ if False:
     Math = parseFloat = isFinite = isNaN = None
     JSON = RegExp = None
     __pragma__ = None
-    jump_js     # use by html
 __pragma__('noskip')
 __pragma__('alias', 'jq', '$')
 
@@ -29,9 +28,10 @@ def section_activate():
     else:
         return False
     jq(".horizontal a").removeClass("active")
-    jq(".horizontal a." + i).addClass("active")
+    jq(".horizontal a." + name).addClass("active")
     jq("section").css("display", "none")
-    jq("section." + i).css("display", "block")
+    jq("section." + name).css("display", "block")
+    return False
 
 
 def main():
@@ -45,7 +45,8 @@ def main():
     jq(".horizontal a").on("click", section_activate)
 
     connections.init()
+    return False
 
 
-jq(main);
-
+jq(main)
+# vi: ft=python:et:ts=4:nowrap:fdm=marker
