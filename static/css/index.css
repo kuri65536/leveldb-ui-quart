@@ -610,10 +610,10 @@ section.query .results .keys select option {
   padding: 8px;
   font-size: 12px;
 }
-section.query .results .value {
+section.query .results #value {
   position: absolute;
   top: 0;
-  left: 300px;
+  left: 310px;
   right: 0;
   bottom: 0px;
   z-index: 1;

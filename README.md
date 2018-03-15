@@ -28,15 +28,14 @@ TODO
 - take screenshots
 - key encode from menu
 - value encode from menu
-
-### 0.2.0
-- value encode by settings
+- enable to reverse in query
 - value encode by python-pickle
 
 
 Change
 ------------------
 ### 0.2.0
+- value encode by settings
 - key encode by settings
 - serve README.md as /readme
 
