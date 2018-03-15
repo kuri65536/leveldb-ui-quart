@@ -9,9 +9,22 @@ import json
 from leveldb import LevelDB
 from quart import Quart, abort, render_template, request
 
+import configs as cfg
+
 Dict, Iterable, Iterator, Optional, Text, Tuple
 app = Quart(__name__)
 db = None  # type: Optional[LevelDB]
+
+
+def json_dbcfg():  # {{{1
+    # type: () -> Text
+    ret = dict(key_encoding=cfg.key_encoding,
+               val_encoding=cfg.val_encoding,
+               compression=cfg.compression,
+               cache_size=cfg.cache_size,
+               create_if_missing=cfg.create_if_missing,
+               error_if_exists=cfg.error_if_exists)
+    return json.dumps(ret)
 
 
 @app.route('/conn.local')
@@ -20,15 +33,9 @@ async def conn_local():
     global db
     path = request.args.get("dir")
     path = path.replace("%2F", "/")
-    db = LevelDB(path, create_if_missing=True)
-    ret = dict(key_encoding="utf-8",
-               val_encoding="json",
-               cache_size=1,
-               create_if_missing=True,
-               error_if_exists=False,
-               compression=False)
+    db = LevelDB(path, cfg.create_if_missing)
     print("LevelDB opened: {}".format(db))
-    return json.dumps(ret)
+    return json_dbcfg()
 
 
 @app.route('/conn.network')
@@ -48,6 +55,37 @@ async def conn_network():
     return json.dumps(ret)
 
 
+@app.route('/settings')
+async def settings():  # route {{{1
+    # type: () -> Text
+    if request.args.get("query", "false") == "true":
+        pass
+    else:
+        _dat = request.args.get("data", "")
+        dat = json.loads(_dat)
+        ke = dat["key_encoding"]
+        ve = dat["val_encoding"]
+        cs = dat["cache_size"]
+        cm = dat["compression"]
+        ci = dat["create_if_missing"]
+        ei = dat["error_if_exists"]
+        if "" in (ke, ve, cs, cm, ci, ei):
+            abort(404)
+            return ""
+        cm = True if cm == "on" else False
+        ci = True if ci == "on" else False
+        ei = True if ei == "on" else False
+        # TODO: error check more strictly
+        cfg.key_encoding = ke
+        cfg.val_encoding = ve
+        cfg.compression = cm
+        cfg.cache_size = cs
+        cfg.create_if_misssing = ci
+        cfg.error_if_exists = ei
+    return json_dbcfg()
+
+
+@app.route('/query_part')
 @app.route('/put')
 async def put_record():  # route {{{1
     # type: () -> Text

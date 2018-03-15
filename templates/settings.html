@@ -9,16 +9,25 @@
 
   <div class="controls top">
     <h2> Settings </h2>
+    <div class="control">
+      <input class="save" type="button" value="Save"
+             id="settings_apply" />
+    </div> <div class="control">
+      <input class="clear" type="button" value="Clear"
+             id="settings_cancel" />
+    </div>
   </div>
 
   <h4> Database </h4>
   <div class="controls">
     <div class="control half">
       <label> Key Encoding  </label>
-      <input class="keyEncoding" type="text" placeholder="utf8" />
+      <input id="settings_keyenc"
+             class="keyEncoding" type="text" placeholder="utf8" />
     </div> <div class="control half">
       <label> Value Encoding </label>
-      <input class="valEncoding" type="text" placeholder="json" />
+      <input id="settings_valenc"
+             class="valEncoding" type="text" placeholder="json" />
     </div>
   </div>
 

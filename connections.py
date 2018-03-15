@@ -4,19 +4,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from typing import Any
+from typing import Any, Callable, Text
 import configs as cfg
 import jsutils
 
 __pragma__('skip')      # noqa
 if False:
-    jq = Any
+    jq = JSON = Any
+    urlencode = Callable[[Text], Text]
     this = alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
-    JSON = RegExp = None
+    RegExp = None
     __pragma__ = None
 __pragma__('noskip')
 __pragma__('alias', 'jq', '$')
+__pragma__('alias', 'urlencode', 'encodeURIComponent')
 
 host_text = port_text = ""
 
@@ -35,8 +37,10 @@ def conn_succeed(_dat):  # {{{1
     jq("#cacheSize").val(dat.cache_size)
     jq("#createIfMissing").prop("checked", dat.create_if_missing)
     jq("#errorIfExists").prop("checked", dat.error_if_exists)
-    jq("#host").val(host_text)
-    jq("#port").val(port_text)
+    if host_text is not None:
+        jq("#host").val(host_text)
+    if port_text is not None:
+        jq("#port").val(port_text)
 
 
 def conn_local():
@@ -120,6 +124,31 @@ def query_sublevels():  # {{{1
     return True
 
 
+def settings_apply():  # {{{1
+    # type: () -> bool
+    ke = jq("#settings_keyenc").val()
+    ve = jq("#settings_valenc").val()
+    cs = jq("#cacheSize").val()
+    cm = jq("#compression").val()
+    ci = jq("#createIfMissing").val()
+    ei = jq("#errorIfExists").val()
+    _dat = JSON.stringify(dict(key_encoding=ke, val_encoding=ve,
+                               compression=cm, cache_size=cs,
+                               create_if_missing=ci,
+                               error_if_exists=ei))
+    dat = urlencode(_dat)
+    jsutils.ajax("/settings?save=true&data=" + dat)  \
+        .then(conn_succeed, conn_failed)
+    return True
+
+
+def settings_cancel():  # {{{1
+    # type: () -> bool
+    jsutils.ajax("/settings?query=true") \
+        .then(conn_succeed, conn_failed)
+    return True
+
+
 def init():  # {{{1
     # type: () -> bool
 
@@ -129,6 +158,8 @@ def init():  # {{{1
     jq(".clear").on("click", put_clear)
     jq(".save").on("click", put_save)
     jq(".sublevels").on("click", query_sublevels)
+    jq("#settings_apply").on("click", settings_apply)
+    jq("#settings_cancel").on("click", settings_cancel)
     return False
 
 # vi: ft=python:et:ts=4:nowrap:fdm=marker
