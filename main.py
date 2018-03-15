@@ -86,7 +86,6 @@ async def settings():  # route {{{1
     return json_dbcfg()
 
 
-@app.route('/query_part')
 @app.route('/put')
 async def put_record():  # route {{{1
     # type: () -> Text
@@ -104,7 +103,7 @@ async def put_record():  # route {{{1
         __v = json.dumps(___v)
     except:
         __v = v
-    _k = k.encode("utf-8")  # TODO: encoding by settings
+    _k = k.encode(cfg.key_encoding)
     _v = __v.encode("utf-8")  # TODO: encoding by settings
     db.Put(_k, _v)
 
@@ -136,15 +135,16 @@ async def query_part():  # route {{{1
     ret = '{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) + \
           ', "records": ['
     i = 0
-    for k in db.RangeIter(u.encode("utf-8"), l.encode("utf-8"),
-                          include_value=False):
+    _u = u.encode(cfg.key_encoding)
+    _l = l.encode(cfg.key_encoding)
+    for k in db.RangeIter(_u, _l, include_value=False):
         assert isinstance(k, bytes)
         i += 1
         if i > _n:
             continue
         if i > 1:
             ret += ", "
-        ret += '{"key": "' + k.decode("utf-8") + '"}'
+        ret += '{"key": "' + k.decode(cfg.key_encoding) + '"}'
     ret += "]}"
     print(ret)
     return ret
@@ -174,13 +174,15 @@ async def query_stream():  # route {{{1
         yield ret.encode("utf-8")
 
         i = 0
-        for k, v in db.RangeIter(u.encode("utf-8"), l.encode("utf-8")):
+        _u = u.encode(cfg.key_encoding)
+        _l = l.encode(cfg.key_encoding)
+        for k, v in db.RangeIter(_u, _l):
             i += 1
             if i > n:
                 break
             if i > 1:
                 yield ",".encode("utf-8")
-            ret = '{"key": "' + k.decode("utf-8") + '", "val": '
+            ret = '{"key": "' + k.decode(cfg.key_encoding) + '", "val": '
             try:
                 _v = json.loads(v.decode("utf-8"))  # TODO: encode by settings
                 ret += _v.dumps()
