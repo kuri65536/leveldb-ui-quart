@@ -13,6 +13,7 @@ Any, Callable, Text
 
 # __pragma__('skip')
 if False:
+    this = Any
     this = alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
     RegExp = None
@@ -90,6 +91,28 @@ def put_save():  # {{{1
     return True
 
 
+def get_succeed(dat):  # {{{1
+    # type: (Text) -> bool
+    _dat = json.parse(dat)
+    jq("#value textarea").val(_dat.v)
+    return False
+
+
+def get_failed():  # {{{1
+    # type: () -> bool
+    'TODO: show failure messages to user'
+    return False
+
+
+def get_record(ev):  # {{{1
+    # type: (Any) -> bool
+    _key = jq(this).text()  # type: ignore
+    key = urlencode(_key)
+    jsutils.ajax("/get?key=" + key) \
+        .then(get_succeed, get_failed)
+    return False
+
+
 def query_succeed(_dat):  # {{{1
     # type: (Any) -> None
     try:
@@ -98,8 +121,9 @@ def query_succeed(_dat):  # {{{1
         return
     jq(".keys select").empty()
     for i in dat.records:
-        cnt = '<option>{}</option>'.format(i.key)
+        cnt = '<option class="key">{}</option>'.format(i.key)
         jq(".keys select").append(cnt)
+    jq(".key").on("dblclick", get_record)
     # for i in dat.records:
     #     cnt = ('<li><input id="tree-{0}" type="checkbox" value="{0}" />' +
     #            '<label for="tree-{0}">{0}</label></li>').format(i.key)

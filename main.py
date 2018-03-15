@@ -4,15 +4,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from typing import (AsyncGenerator, Dict,
+from typing import (Any, AsyncGenerator, Dict,
                     Iterable, Iterator, Optional, Text, Tuple)
+import pickle
 import json
 from leveldb import LevelDB  # type: ignore
 from quart import Quart, abort, render_template, request  # type: ignore
 
 import configs as cfg
 
-AsyncGenerator, Dict, Iterable, Iterator, Optional, Text, Tuple
+Any, AsyncGenerator, Dict, Iterable, Iterator, Optional, Text, Tuple
 app = Quart(__name__)
 db = None  # type: Optional[LevelDB]
 
@@ -26,6 +27,65 @@ def json_dbcfg():  # {{{1
                create_if_missing=cfg.create_if_missing,
                error_if_exists=cfg.error_if_exists)
     return json.dumps(ret)
+
+
+def valdec_text(src):  # {{{1
+    # type: (bytes) -> Text
+    if cfg.val_encoding.lower().endswith("latin-1"):
+        enc = "latin-1"
+    else:
+        enc = "utf-8"
+    return src.decode(enc)
+
+
+def valdec_bytes(src):  # {{{1
+    # type: (bytes) -> Any
+    if cfg.val_encoding.lower().startswith("json"):
+        _ret = valdec_text(src)
+        try:
+            ret = json.loads(_ret)
+        except json.decoder.JSONDecodeError:
+            ret = _ret
+        return ret
+    elif cfg.val_encoding.lower().startswith("raw"):
+        pass
+    elif cfg.val_encoding.lower().startswith("pickle"):
+        ret = pickle.loads(src)
+        return ret
+    return valdec_text(src)
+
+
+def valenc_text(src):  # {{{1
+    # type: (Text) -> bytes
+    if cfg.val_encoding.lower().endswith("latin-1"):
+        enc = "latin-1"
+    else:
+        enc = "utf-8"
+    return src.encode(enc)
+
+
+def valenc_raw(src):  # {{{1
+    # type: (Text) -> bytes
+    return valenc_text(src)
+
+
+def valenc_json(src):  # {{{1
+    # type: (Text) -> bytes
+    try:
+        _src = json.loads(src)
+    except:
+        _src = src
+    return valenc_text(_src)
+
+
+def valenc_pickle(src):  # {{{1
+    # type: (Text) -> bytes
+    try:
+        dat = valenc_text(src)
+        return pickle.pickle(dat)  # type: ignore
+    except:
+        pass
+    return valenc_text(src)
 
 
 @app.route('/conn.local')
@@ -86,6 +146,30 @@ async def settings():  # route {{{1
     return json_dbcfg()
 
 
+@app.route('/get')
+async def get_record():  # route {{{1
+    # type: () -> Text
+    global db
+    if db is None:
+        abort(404)
+        return ""
+    k = request.args.get("key", "")
+    if k == "":
+        abort(404)
+        return ""
+    _k = k.encode(cfg.key_encoding)
+    try:
+        v = db.Get(_k)
+    except KeyError:
+        abort(404)
+        return ""
+
+    _v = valdec_bytes(v)
+    ret = dict(k=k, v=str(_v))
+    print("LevelDB put: {}".format(ret))
+    return json.dumps(ret)
+
+
 @app.route('/put')
 async def put_record():  # route {{{1
     # type: () -> Text
@@ -98,16 +182,16 @@ async def put_record():  # route {{{1
     if k == "" or v == "":
         abort(404)
         return ""
-    try:
-        ___v = json.loads(v)
-        __v = json.dumps(___v)
-    except:
-        __v = v
+    if cfg.val_encoding.lower().startswith("json"):
+        _v = valenc_json(v)
+    elif cfg.val_encoding.lower().startswith("pickle"):
+        _v = valenc_pickle(v)
+    else:
+        _v = valenc_text(v)
     _k = k.encode(cfg.key_encoding)
-    _v = __v.encode("utf-8")  # TODO: encoding by settings
     db.Put(_k, _v)
 
-    ret = dict(k=k, v=__v)
+    ret = dict(k=k, v=valdec_text(_v))
     print("LevelDB put: {}".format(ret))
     return json.dumps(ret)
 
@@ -138,7 +222,7 @@ async def query_part():  # route {{{1
     _u = u.encode(cfg.key_encoding)
     _l = l.encode(cfg.key_encoding)
     for k in db.RangeIter(_u, _l, include_value=False):
-        assert isinstance(k, bytes)
+        assert isinstance(k, bytearray), "??? key type is {}".format(type(k))
         i += 1
         if i > _n:
             continue
@@ -183,13 +267,8 @@ async def query_stream():  # route {{{1
             if i > 1:
                 yield ",".encode("utf-8")
             ret = '{"key": "' + k.decode(cfg.key_encoding) + '", "val": '
-            try:
-                _v = json.loads(v.decode("utf-8"))  # TODO: encode by settings
-                ret += _v.dumps()
-            except json.decoder.JSONDecodeError:
-                _v = v.decode("utf-8")
-                ret += '"{}"'.format(_v)
-            ret += "}"
+            _v = valdec_bytes(v)
+            ret += '"{}"}'.format(str(_v))
             yield ret.encode("utf-8")
         yield "]}".encode("utf-8")
 

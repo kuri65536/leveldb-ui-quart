@@ -19,7 +19,6 @@ if False:
     encodeURIComponent = Any
 # __pragma__('noskip')
 # __pragma__('alias', '_jq', '$')
-# __pragma__('alias', 'urlencode', 'encodeURIComponent')
 
 
 def ajax(url):  # {{{1
