@@ -4,14 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from typing import Dict, Iterable, Iterator, Optional, Text, Tuple
+from typing import (AsyncGenerator, Dict,
+                    Iterable, Iterator, Optional, Text, Tuple)
 import json
-from leveldb import LevelDB
-from quart import Quart, abort, render_template, request
+from leveldb import LevelDB  # type: ignore
+from quart import Quart, abort, render_template, request  # type: ignore
 
 import configs as cfg
 
-Dict, Iterable, Iterator, Optional, Text, Tuple
+AsyncGenerator, Dict, Iterable, Iterator, Optional, Text, Tuple
 app = Quart(__name__)
 db = None  # type: Optional[LevelDB]
 
@@ -80,7 +81,7 @@ async def settings():  # route {{{1
         cfg.val_encoding = ve
         cfg.compression = cm
         cfg.cache_size = cs
-        cfg.create_if_misssing = ci
+        cfg.create_if_missing = ci
         cfg.error_if_exists = ei
     return json_dbcfg()
 
@@ -114,15 +115,15 @@ async def put_record():  # route {{{1
 
 @app.route('/query_part')
 async def query_part():  # route {{{1
-    # type: () -> bytes
+    # type: () -> Text
     '''TODO: hold iterator, return the token, continue iterator with token.
     '''
     global db
     if db is None:
         abort(404)
         return ""
-    u = request.args.get("u", "")
-    l = request.args.get("l", "")
+    u = str(request.args.get("u", ""))
+    l = str(request.args.get("l", ""))
     n = request.args.get("n", "100")
 
     if l == "":
@@ -132,11 +133,12 @@ async def query_part():  # route {{{1
     except ValueError:
         _n = 100
 
-    ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) +
-           ', "records": [')
+    ret = '{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) + \
+          ', "records": ['
     i = 0
     for k in db.RangeIter(u.encode("utf-8"), l.encode("utf-8"),
                           include_value=False):
+        assert isinstance(k, bytes)
         i += 1
         if i > _n:
             continue
@@ -145,29 +147,28 @@ async def query_part():  # route {{{1
         ret += '{"key": "' + k.decode("utf-8") + '"}'
     ret += "]}"
     print(ret)
-    return ret.encode("utf-8")
+    return ret
 
 
 @app.route('/query_stream')
 async def query_stream():  # route {{{1
-    # type: () -> Tuple[Iterable[bytes], int, Dict[Text, Text]]
+    # type: () -> Tuple[AsyncGenerator[bytes, None], int, Dict[Text, Text]]
     global db
-    if db is None:
-        abort(404)
-        return ""
-    u = request.args.get("u", "")
-    l = request.args.get("l", "")
-    n = request.args.get("n", "100")
+    u = str(request.args.get("u", ""))
+    l = str(request.args.get("l", ""))
+    _n = request.args.get("n", "100")
 
     if l == "":
         l = chr(255)
     try:
-        _n = int(n)
+        n = int(_n)
     except ValueError:
-        _n = 100
+        n = 100
 
     async def stream(u, l, n):
-        # type: (Text, Text, int) -> Iterable[byte]
+        # type: (Text, Text, int) -> AsyncGenerator[bytes, None]
+        if db is None:
+            return
         ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(n) +
                ', "records": [')
         yield ret.encode("utf-8")
@@ -189,19 +190,20 @@ async def query_stream():  # route {{{1
             ret += "}"
             yield ret.encode("utf-8")
         yield "]}".encode("utf-8")
-    return stream(u, l, _n), 200, {'X-Something': 'value'}
+
+    ret = 200 if db is not None else 500
+    return stream(u, l, n), ret, {'X-Something': 'value'}
 
 
 @app.route('/')
-async def root():  # {{{1
-    # type: () -> Text
+async def root():  # type: ignore  # mypy error: syntax error ? {{{1
     return await render_template("index.html")
 
 
 @app.route('/readme')
 async def readme():  # {{{1
     # type: () -> Text
-    import markdown
+    import markdown  # type: ignore  # no type stub
     ret = ""
     with open("templates/index.html", "rt") as fp:
         for line in fp:

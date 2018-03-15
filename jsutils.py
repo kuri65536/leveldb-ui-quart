@@ -4,19 +4,49 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-__pragma__('skip')      # noqa
+from typing import Any, Callable, Text, Union
+
+
+Any, Callable, Text, Union
+
+
+# __pragma__('skip')
 if False:
-    jq = None
+    _jq = JSON = Any
     this = alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
     JSON = RegExp = None
-    __pragma__ = None
-__pragma__('noskip')
-__pragma__('alias', 'jq', '$')
+    encodeURIComponent = Any
+# __pragma__('noskip')
+# __pragma__('alias', '_jq', '$')
+# __pragma__('alias', 'urlencode', 'encodeURIComponent')
 
 
 def ajax(url):  # {{{1
     # type: (Text) -> Any
     dat = dict(url=url)
-    return jq.ajax(dat)
+    return _jq.ajax(dat)  # type: ignore
+
+
+def jq(arg):  # {{{1
+    # type: (Union[Text, Callable[[], Any]]) -> Any
+    return _jq(arg)  # type: ignore
+
+
+def urlencode(src):  # {{{1
+    # type: (Text) -> Text
+    return encodeURIComponent(src)  # type: ignore
+
+
+class json(object):  # {{{1
+    @classmethod
+    def stringify(cls, obj):  # {{{1
+        # type: (Any) -> Text
+        return JSON.stringify(obj)  # type: ignore
+
+    @classmethod
+    def parse(cls, src):  # {{{1
+        # type: (Text) -> Any
+        return JSON.parse(src)  # type: ignore
+
 # vi: ft=python:et:ts=4:nowrap:fdm=marker

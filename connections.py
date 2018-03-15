@@ -6,19 +6,17 @@
 #
 from typing import Any, Callable, Text
 import configs as cfg
-import jsutils
+from jsutils import jq, json, urlencode
+import jsutils  # type: ignore
 
-__pragma__('skip')      # noqa
+Any, Callable, Text
+
+# __pragma__('skip')
 if False:
-    jq = JSON = Any
-    urlencode = Callable[[Text], Text]
     this = alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
     RegExp = None
-    __pragma__ = None
-__pragma__('noskip')
-__pragma__('alias', 'jq', '$')
-__pragma__('alias', 'urlencode', 'encodeURIComponent')
+# __pragma__('noskip')
 
 host_text = port_text = ""
 
@@ -30,7 +28,7 @@ def conn_failed():
 
 def conn_succeed(_dat):  # {{{1
     # type: (Any) -> None
-    dat = JSON.parse(_dat)
+    dat = json.parse(_dat)
     jq(".keyEncoding").val(dat.key_encoding)
     jq(".valEncoding").val(dat.val_encoding)
     jq("#compression").prop("checked", dat.compression)
@@ -95,7 +93,7 @@ def put_save():  # {{{1
 def query_succeed(_dat):  # {{{1
     # type: (Any) -> None
     try:
-        dat = JSON.parse(_dat)
+        dat = json.parse(_dat)
     except:
         return
     jq(".keys select").empty()
@@ -132,7 +130,7 @@ def settings_apply():  # {{{1
     cm = jq("#compression").val()
     ci = jq("#createIfMissing").val()
     ei = jq("#errorIfExists").val()
-    _dat = JSON.stringify(dict(key_encoding=ke, val_encoding=ve,
+    _dat = json.stringify(dict(key_encoding=ke, val_encoding=ve,
                                compression=cm, cache_size=cs,
                                create_if_missing=ci,
                                error_if_exists=ei))

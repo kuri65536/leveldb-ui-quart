@@ -19,7 +19,7 @@ error_if_exists = False
 
 
 def url(*text):
-    # type: (List[Text]) -> Text
+    # type: (Text) -> Text
     ret = url_host
     for i in text:
         i = i.replace("/", "%2F")
