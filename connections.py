@@ -14,7 +14,7 @@ Any, Callable, Text
 # __pragma__('skip')
 if False:
     this = Any
-    this = alert = document = window = None
+    alert = document = window = None
     Math = parseFloat = isFinite = isNaN = None
     RegExp = None
 # __pragma__('noskip')
@@ -140,10 +140,34 @@ def query_sublevels():  # {{{1
     u = jq(".upperbound").val()
     l = jq(".lowerbound").val()
     n = jq(".limit").val()
+    r = "&r=on" if jq(".reverse").val() == "up" else ""
     n = "&n=" + n if n != "" else ""
-    jsutils.ajax("/query_part?u=" + u + "&l=" + l + n)  \
+    jsutils.ajax("/query_part?u=" + u + "&l=" + l + n + r)  \
         .then(query_succeed, query_failed)
     return True
+
+
+def query_toggle_rev():  # {{{1
+    # type: () -> bool
+    btn = jq(".reverse")
+    if btn.val() == "down":
+        btn.val("up")
+    else:
+        btn.val("down")
+    return True
+
+
+def query_enable_select(ev):  # {{{1
+    # type: (Any) -> bool
+    # jq(ev.target).prev().val("").focus().trigger("input")
+    # jq(ev.target).prev().val("").focus().trigger("click")
+    jq(ev.target).prev().val("").focus().click()
+    return True
+
+
+def query_enable_dummy(ev):
+    # tyype: (Any) -> bool
+    return False
 
 
 def settings_apply():  # {{{1
@@ -174,12 +198,25 @@ def settings_cancel():  # {{{1
 def init():  # {{{1
     # type: () -> bool
 
-    # hide sections
+    # menus
+    btn = jq("#keyenc_list")
+    for i in cfg.key_encodings:
+        opt = '<option value="{0}">{0}</option>'.format(i)
+        btn.append(opt)
+    btn = jq("#valenc_list")
+    for i in cfg.val_encodings:
+        opt = '<option value="{0}">{0}</option>'.format(i)
+        btn.append(opt)
+    jq(".keyEncoding").on("click", query_enable_dummy)
+    jq(".valEncoding").on("click", query_enable_dummy)
+
+    # events
     jq(".openDirectory").on("click", conn_local)
     jq(".openConnection").on("click", conn_network)
     jq(".clear").on("click", put_clear)
     jq(".save").on("click", put_save)
     jq(".sublevels").on("click", query_sublevels)
+    jq(".reverse").on("click", query_toggle_rev)
     jq("#settings_apply").on("click", settings_apply)
     jq("#settings_cancel").on("click", settings_cancel)
     return False

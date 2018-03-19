@@ -17,6 +17,9 @@ compression = True
 create_if_missing = True
 error_if_exists = False
 
+key_encodings = ("utf-8", "latin-1")
+val_encodings = ("json", "pickle", "raw")
+
 
 def url(*text):
     # type: (Text) -> Text

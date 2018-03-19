@@ -170,6 +170,23 @@ async def get_record():  # route {{{1
     return json.dumps(ret)
 
 
+def query_fetch_args(args):  # {{{1
+    # type: (Dict[Text, Text]) -> Tuple[Text, Text, int, bool]
+    u = str(args.get("u", ""))
+    l = str(args.get("l", ""))
+    _f_rev = str(args.get("r", ""))
+    n = args.get("n", "100")
+
+    if l == "":
+        l = chr(255)
+    try:
+        _n = int(n)
+    except ValueError:
+        _n = 100
+    f_rev = True if _f_rev == "on" else False
+    return u, l, _n, f_rev
+
+
 @app.route('/put')
 async def put_record():  # route {{{1
     # type: () -> Text
@@ -205,23 +222,14 @@ async def query_part():  # route {{{1
     if db is None:
         abort(404)
         return ""
-    u = str(request.args.get("u", ""))
-    l = str(request.args.get("l", ""))
-    n = request.args.get("n", "100")
-
-    if l == "":
-        l = chr(255)
-    try:
-        _n = int(n)
-    except ValueError:
-        _n = 100
+    u, l, _n, f_rev = query_fetch_args(request.args)
 
     ret = '{"u": "' + u + '", "l": "' + l + '", "n":' + str(_n) + \
           ', "records": ['
     i = 0
     _u = u.encode(cfg.key_encoding)
     _l = l.encode(cfg.key_encoding)
-    for k in db.RangeIter(_u, _l, include_value=False):
+    for k in db.RangeIter(_u, _l, include_value=False, reverse=f_rev):
         assert isinstance(k, bytearray), "??? key type is {}".format(type(k))
         i += 1
         if i > _n:
@@ -238,19 +246,10 @@ async def query_part():  # route {{{1
 async def query_stream():  # route {{{1
     # type: () -> Tuple[AsyncGenerator[bytes, None], int, Dict[Text, Text]]
     global db
-    u = str(request.args.get("u", ""))
-    l = str(request.args.get("l", ""))
-    _n = request.args.get("n", "100")
+    u, l, n, f_rev = query_fetch_args(request.args)
 
-    if l == "":
-        l = chr(255)
-    try:
-        n = int(_n)
-    except ValueError:
-        n = 100
-
-    async def stream(u, l, n):
-        # type: (Text, Text, int) -> AsyncGenerator[bytes, None]
+    async def stream(u, l, n, f_rev):
+        # type: (Text, Text, int, bool) -> AsyncGenerator[bytes, None]
         if db is None:
             return
         ret = ('{"u": "' + u + '", "l": "' + l + '", "n":' + str(n) +
@@ -260,7 +259,7 @@ async def query_stream():  # route {{{1
         i = 0
         _u = u.encode(cfg.key_encoding)
         _l = l.encode(cfg.key_encoding)
-        for k, v in db.RangeIter(_u, _l):
+        for k, v in db.RangeIter(_u, _l, reverse=f_rev):
             i += 1
             if i > n:
                 break
@@ -273,7 +272,7 @@ async def query_stream():  # route {{{1
         yield "]}".encode("utf-8")
 
     ret = 200 if db is not None else 500
-    return stream(u, l, n), ret, {'X-Something': 'value'}
+    return stream(u, l, n, f_rev), ret, {'X-Something': 'value'}
 
 
 @app.route('/')

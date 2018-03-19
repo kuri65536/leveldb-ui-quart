@@ -629,3 +629,6 @@ section.settings label {
 section.settings .custom + label {
   width: 180px;
 }
+.enc_select {
+  margin-left: -20px;
+}

@@ -24,16 +24,21 @@ $ make launch
 
 TODO
 ------------------
+### 1.0.0
+- classify list-uped keys.
+
 ### 0.3.0
-- take screenshots
-- key encode from menu
-- value encode from menu
-- enable to reverse in query
+- readme: take screenshots
 - value encode by python-pickle
 
 
 Change
 ------------------
+### 0.3.0
+- key encode from menu
+- value encode from menu
+- enable to reverse in query
+
 ### 0.2.0
 - value encode by settings
 - key encode by settings
