@@ -4,12 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from typing import Any, Callable, Text
+from typing import Any, Callable, List, Text
 import configs as cfg
 from jsutils import jq, json, urlencode
 import jsutils  # type: ignore
 
-Any, Callable, Text
+Any, Callable, List, Text
 
 # __pragma__('skip')
 if False:
@@ -113,16 +113,63 @@ def get_record(ev):  # {{{1
     return False
 
 
+def query_toggle_class(ev):  # {{{1
+    # type: (Any) -> bool
+    tgt = jq(ev.target).parent()
+    cls = ""
+    for i in tgt.attr("class").split(" "):
+        if not i.startswith("level"):
+            continue
+        cls = i
+        break
+    else:
+        return False
+    c = "none"
+    v = "navigateright"
+    tgt2 = tgt.nextUntil("." + cls)  # li
+    tgt = jq(ev.target)  # li.input
+    if tgt2.length < 1:
+        return False
+    if tgt2.css("display") == c:
+        v = "navigatedown"
+        c = "block"
+    tgt.val(v)
+    tgt2.css("display", c)
+    return False
+
+
 def query_succeed(_dat):  # {{{1
     # type: (Any) -> None
     try:
         dat = json.parse(_dat)
     except:
         return
-    jq(".keys select").empty()
+    dst = jq(".keys ul").empty()
+    prevs = []  # type: List[Text]
+    # classify
+    # a
+    #  aa
+    #   aab
+    #   aac
+    #  ab
+    # b
+    m = 0
     for i in dat.records:
-        cnt = '<option class="key">{}</option>'.format(i.key)
-        jq(".keys select").append(cnt)
+        n = len(prevs)
+        for j in range(n):
+            prv = prevs[0]
+            if i.key.startswith(prv):
+                break  # keep level
+            prevs = prevs[1:]
+        lvl = len(prevs)
+        if lvl > m:
+            m = lvl
+        cnt = '<li class="key level{}">'.format(lvl)
+        cnt += '<input class="ss-icon" type="button" value="navigatedown" />'
+        cnt += '{}</li>'.format(i.key)
+        dst.append(cnt)
+        prevs.insert(0, i.key)
+    jq(".keys input".format(i)).on("click", query_toggle_class)
     jq(".key").on("dblclick", get_record)
     # for i in dat.records:
     #     cnt = ('<li><input id="tree-{0}" type="checkbox" value="{0}" />' +
@@ -165,8 +212,8 @@ def query_enable_select(ev):  # {{{1
     return True
 
 
-def query_enable_dummy(ev):
-    # tyype: (Any) -> bool
+def query_enable_dummy(ev):  # {{{1
+    # type: (Any) -> bool
     return False
 
 

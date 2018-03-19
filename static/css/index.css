@@ -597,7 +597,7 @@ section.query .results .keys {
   bottom: 0px;
   z-index: 1;
 }
-section.query .results .keys select {
+section.query .results #key_list {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -605,9 +605,30 @@ section.query .results .keys select {
   width: 100%;
   outline: none;
   border: none;
+  padding-top: 10px;
 }
-section.query .results .keys select option {
-  padding: 8px;
+section.query .results .keys .level0 {
+  padding: 8px 0px 0px 8px;
+  font-size: 12px;
+}
+section.query .results .keys .level1 {
+  padding: 8px 0px 0px 16px;
+  font-size: 12px;
+}
+section.query .results .keys .level2 {
+  padding: 8px 0px 0px 24px;
+  font-size: 12px;
+}
+section.query .results .keys .level3 {
+  padding: 8px 0px 0px 32px;
+  font-size: 12px;
+}
+section.query .results .keys .level4 {
+  padding: 8px 0px 0px 40px;
+  font-size: 12px;
+}
+section.query .results .keys .level5 {
+  padding: 8px 0px 0px 48px;
   font-size: 12px;
 }
 section.query .results #value {
